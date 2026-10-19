@@ -1,6 +1,7 @@
 [submodule "AndroidLibXrayLite"]
 	path = AndroidLibXrayLite
-	url = https://github.com/2dust/AndroidLibXrayLite
+	url = https://github.com/pvk0/AndroidLibXrayLite
+	branch = xdrive
 [submodule "hev-socks5-tunnel"]
 	path = hev-socks5-tunnel
 	url = https://github.com/heiher/hev-socks5-tunnel
