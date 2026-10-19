@@ -1,4 +1,8 @@
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.security.MessageDigest;
+import java.util.HexFormat;
 import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -17,7 +21,7 @@ public class KeyCheck {
         try {
             keyStore = KeyStore.getInstance(new File(file), storePassword);
         } catch (Exception e) {
-            fail("cannot open the keystore: APP_KEYSTORE_BASE64 is not a JKS/PKCS12 keystore or APP_KEYSTORE_PASSWORD is wrong");
+            fail("cannot open the keystore (" + e + "): APP_KEYSTORE_BASE64 is not a JKS/PKCS12 keystore or APP_KEYSTORE_PASSWORD is wrong; " + describe(file));
             return;
         }
 
@@ -36,6 +40,21 @@ public class KeyCheck {
             fail("APP_KEY_PASSWORD does not unlock the key (" + e.getClass().getSimpleName() + ")" + hint);
         }
         System.out.println("Keystore OK: " + keyStore.getType());
+    }
+
+    // Not secret: lets the owner compare the decoded file with the local one (sha256sum / Get-FileHash)
+    private static String describe(String file) throws Exception {
+        byte[] data = Files.readAllBytes(Path.of(file));
+        String format;
+        if (data.length >= 4 && (data[0] & 0xff) == 0xfe && (data[1] & 0xff) == 0xed && (data[2] & 0xff) == 0xfe && (data[3] & 0xff) == 0xed) {
+            format = "JKS";
+        } else if (data.length >= 1 && data[0] == 0x30) {
+            format = "DER, probably PKCS12";
+        } else {
+            format = "unknown, not a keystore";
+        }
+        String sha256 = HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(data));
+        return "decoded file: " + data.length + " bytes, format " + format + ", SHA-256 " + sha256;
     }
 
     private static void fail(String message) {
