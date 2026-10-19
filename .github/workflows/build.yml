@@ -95,7 +95,8 @@ jobs:
       run: |
         KEYSTORE="$RUNNER_TEMP/android_keystore.jks"
         if [ -n "$KEYSTORE_BASE64" ]; then
-          printf '%s' "$KEYSTORE_BASE64" | base64 -d > "$KEYSTORE"
+          printf '%s' "$KEYSTORE_BASE64" | base64 -d > "$KEYSTORE" || { echo "::error::APP_KEYSTORE_BASE64 is not valid base64"; exit 1; }
+          java .github/scripts/KeyCheck.java "$KEYSTORE"
         else
           echo "::warning::APP_KEYSTORE_BASE64 is not set, signing with a one-off key: uninstall the previous build before installing this one"
           KEYSTORE_PASSWORD=$(openssl rand -hex 16)
